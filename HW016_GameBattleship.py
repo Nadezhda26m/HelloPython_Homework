@@ -19,6 +19,15 @@
 # проверяется статус хода
 # 8. Когда одна из сторон сбивает все расставленные цели, то объявляется победитель
 
+# TODO
+# расширить поле +
+# добавить 1 корабль ++
+# ранил / потопил
+# проверка ввода вертикали / горизонтали
+# комп ищет раненый корабль
+# добавить словарь фраз
+# вокруг потопленного корабля комп не ищет
+
 from random import randint
 import time
 
@@ -34,7 +43,7 @@ def print_field_square(field):
         else:
             print(f'{i + 1}', end=' ')
             for k in range(0, size_field):
-                print(field[i][k], end=' ')
+                print(field[i][k] if field[i][k] != 0 else '.', end=' ')
             print()
 
 # проверить корректность ввода пользователя
@@ -62,22 +71,24 @@ def create_field(size, char=0):
 # проверить, соприкасается ли указанная ячейка с уже заполненной, в т.ч. по диагонали
 def check_space_around(row, col, field):
     size = len(field)
-    correct_point = True
-    if row > 0:
-        if field[row - 1][col] != 0:
-            correct_point = False
-        if col > 0 and (field[row][col - 1] != 0 or field[row - 1][col - 1] != 0):
-            correct_point = False
-        if col < size - 1 and (field[row][col + 1] != 0 or field[row - 1][col + 1] != 0):
-            correct_point = False
-    if row < size - 1:
-        if field[row + 1][col] != 0:
-            correct_point = False
-        if col > 0 and (field[row][col - 1] != 0 or field[row + 1][col - 1] != 0):
-            correct_point = False
-        if col < size - 1 and (field[row][col + 1] != 0 or field[row + 1][col + 1] != 0):
-            correct_point = False
-    return correct_point
+    while True:
+        if field[row][col] != 0:
+            break
+        if row > 0:
+            if field[row - 1][col] != 0:
+                break
+            if col > 0 and (field[row][col - 1] != 0 or field[row - 1][col - 1] != 0):
+                break
+            if col < size - 1 and (field[row][col + 1] != 0 or field[row - 1][col + 1] != 0):
+                break
+        if row < size - 1:
+            if field[row + 1][col] != 0:
+                break
+            if col > 0 and (field[row][col - 1] != 0 or field[row + 1][col - 1] != 0):
+                break
+            if col < size - 1 and (field[row][col + 1] != 0 or field[row + 1][col + 1] != 0):
+                break
+        return True
 
 # вывести рядом два поля
 def print_fields_nearby(field_left, field_right):
@@ -94,13 +105,45 @@ def print_fields_nearby(field_left, field_right):
         else:
             print(f'{i + 1}', end=' ')
             for k in range(0, size):
-                print(field_left[i][k], end=' ')
+                print(field_left[i][k] if field_left[i][k] != 0 else '.', end=' ')
             print(f'        {i + 1}', end=' ')
             for k in range(0, size):
-                print(field_right[i][k], end=' ')
+                print(field_right[i][k] if field_right[i][k] != 0 else '.', end=' ')
             print()
 
-size_field = 4  # Задаем размер игрового поля, квадратного
+# разместить рандомно корабль с указанием количества палуб
+def put_ship_random(check_space, field, count_decks):
+    size = len(field)
+    horiz_vertic = randint(1, 2)
+    while True:
+        ship_row = randint(0, size - 1)
+        ship_col = randint(0, size - 1)
+        if check_space(ship_row, ship_col, field):
+            if horiz_vertic == 1:
+                if ship_col <= size - count_decks:
+                    if check_space(ship_row, ship_col + count_decks - 1, field):
+                        for i in range(count_decks):
+                            field[ship_row][ship_col + i] = '*'
+                        break
+            else:
+                if ship_row <= size - count_decks:
+                    if check_space(ship_row + count_decks - 1, ship_col, field):
+                        for i in range(count_decks):
+                            field[ship_row + i][ship_col] = '*'
+                        break
+
+# разместить рандомно однопалубный корабль (меньше проверок)
+def put_decks_random_1decks(check_space, field):
+    size = len(field)
+    while True:
+        ship_row = randint(0, size - 1)
+        ship_col = randint(0, size - 1)
+        if check_space(ship_row, ship_col, field):
+            field_comp[ship_row][ship_col] = '*'
+            break
+
+
+size_field = 7  # Задаем размер игрового поля, квадратного
 print('Добро пожаловать в игру Морской бой!\n'
       'Правила игры доступны по ссылке [тык]\n')
 
@@ -166,29 +209,16 @@ print_field_square(field_user)
 
 # комп прячет кораблики
 field_comp = create_field(size_field)
-ship_row = randint(0, size_field - 1)
-ship_col = randint(0, size_field - 1)
-horiz_vertic = randint(1, 2)
-field_comp[ship_row][ship_col] = '*'
-if horiz_vertic == 1:
-    if ship_col == size_field - 1:
-        field_comp[ship_row][ship_col - 1] = '*'
-    else:
-        field_comp[ship_row][ship_col + 1] = '*'
-else:
-    if ship_row == size_field - 1:
-        field_comp[ship_row - 1][ship_col] = '*'
-    else:
-        field_comp[ship_row + 1][ship_col] = '*'
+put_ship_random(check_space_around, field_comp, 4)
+put_ship_random(check_space_around, field_comp, 3)
+put_ship_random(check_space_around, field_comp, 2)
+put_ship_random(check_space_around, field_comp, 2)
+put_decks_random_1decks(check_space_around, field_comp)
+put_decks_random_1decks(check_space_around, field_comp)
+put_decks_random_1decks(check_space_around, field_comp)
 
-while True:
-    ship_row = randint(0, size_field - 1)
-    ship_col = randint(0, size_field - 1)
-    if check_space_around(ship_row, ship_col, field_comp):
-        field_comp[ship_row][ship_col] = '*'
-        break
-# print('Корабли противника >')
-# print_field_square(field_comp)  # не подсматривайте за кораблями противника!
+print('Корабли противника >')
+print_field_square(field_comp)  # не подсматривайте за кораблями противника!
 
 # кто ходит первым
 time.sleep(2)
@@ -205,6 +235,8 @@ else:
 # подсчитываем сбитые корабли
 user_win = 0
 comp_win = 0
+
+# !!!!!!!!!!!!!!!!!!!
 max_ships = 3  # 3 ячейки с кораблями
 while True:
 
