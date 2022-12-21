@@ -1,5 +1,5 @@
 # Сделать игру морской бой
-
+#
 # Алгоритм
 # 1. Создаем пустое игровое поля заданного размера, список списков,
 # по умолчанию заполняем нулями
@@ -18,12 +18,12 @@
 # 7. Аналогично при передачи хода компьютеру рандомно выбирается валидная ячейка,
 # проверяется статус хода
 # 8. Когда одна из сторон сбивает все расставленные цели, то объявляется победитель
-
+#
 # TODO
 # расширить поле +
-# добавить 1 корабль ++
+# добавить корабли ++
 # ранил / потопил +
-# проверка ввода вертикали / горизонтали
+# проверка ввода вертикали / горизонтали +
 # комп ищет раненый корабль
 # добавить словарь фраз
 # вокруг потопленного корабля комп не ищет
@@ -46,7 +46,7 @@ def print_field_square(field):
                 print(field[i][k] if field[i][k] != 0 else '.', end=' ')
             print()
 
-# проверить корректность ввода пользователя
+# проверить корректность ввода пользователя при нацеливании
 def check_input_user(field):
     size = len(field)
     while True:
@@ -139,7 +139,7 @@ def put_decks_random_1decks(check_space, field):
         ship_row = randint(0, size - 1)
         ship_col = randint(0, size - 1)
         if check_space(ship_row, ship_col, field):
-            field_comp[ship_row][ship_col] = '*'
+            field[ship_row][ship_col] = '*'
             break
 
 # Ищем раненые корабли
@@ -171,83 +171,120 @@ def find_damaged_ship(row, col, ships, target, check=[]):
         else:
             return True
 
+# задать положение корабля
+def choose_horiz_vertic():
+    print('Выберите расположение корабля: 1 - горизонтальное, 2 - вертикальное')
+    while True:
+        number = int(input('> '))
+        if number == 1:
+            return 1
+        elif number == 2:
+            return 2
+        else:
+            print('Неверные данные, повторите ввод')
+
+def put_ship_user(check_space, field, count_decks, horiz_vertic):
+    size = len(field)
+    print('Введите координаты левой части корабля при горизонтальном расположении\n'
+          'или координаты верхней части корабля при вертикальном расположении\n'
+          'Корабли не должны соприкасаться')
+    while True:
+        ship_row = int(input('Строка: '))
+        ship_col = int(input('Столбик: '))
+        if 0 < ship_row <= size and 0 < ship_col <= size:
+            if check_space(ship_row - 1, ship_col - 1, field):
+                if horiz_vertic == 1:
+                    if ship_col - 1 <= size - count_decks:
+                        if check_space(ship_row - 1, ship_col + count_decks - 2, field):
+                            for i in range(count_decks):
+                                field[ship_row - 1][ship_col - 1 + i] = '*'
+                            break
+                        else:
+                            print('Сюда нельзя ставить корабль, повторите ввод')
+                    else:
+                        print('Справа не хватает места для корабля, повторите ввод')
+                else:
+                    if ship_row - 1 <= size - count_decks:
+                        if check_space(ship_row + count_decks - 2, ship_col - 1, field):
+                            for i in range(count_decks):
+                                field[ship_row - 1 + i][ship_col - 1] = '*'
+                            break
+                        else:
+                            print('Сюда нельзя ставить корабль, повторите ввод')
+                    else:
+                        print('Снизу не хватает места для корабля, повторите ввод')
+            else:
+                print('Сюда нельзя ставить корабль, повторите ввод')
+        else:
+            print('Неверные данные, повторите ввод')
+
+def put_ship_user_1_deck(check_space, field):
+    size = len(field)
+    while True:
+        ship_row = int(input('Строка: '))
+        ship_col = int(input('Столбик: '))
+        if 0 < ship_row <= size and 0 < ship_col <= size:
+            if check_space(ship_row - 1, ship_col - 1, field):
+                field[ship_row - 1][ship_col - 1] = '*'
+                break
+            else:
+                print('Сюда нельзя ставить корабль, повторите ввод')
+        else:
+            print('Неверные данные, повторите ввод')
 
 size_field = 7  # Задаем размер игрового поля, квадратного
 print('Добро пожаловать в игру Морской бой!\n'
       'Правила игры доступны по ссылке [тык]\n')
 
 # /Расставляем корабли пользователя
-print('Сперва расставьте корабли на своем поле, один двухпалубный и один однопалубный')
+count_ship_4 = 1
+count_ship_3 = 1
+count_ship_2 = 2
+count_ship_1 = 3
+print(f'Сперва расставьте корабли на своем поле:\n□□□□ - {count_ship_4}\n'
+      f'□□□ - {count_ship_3}\n□□ - {count_ship_2}\n□ - {count_ship_1}')
 field_user = create_field(size_field)
 print_field_square(field_user)
-print('Начнем с двухпалубного, чтобы расположить его горизонтально, '
-      'нажмите 1, вертикально - 2')
-while True:
-    horiz_vertic = int(input('> '))
-    if horiz_vertic == 1 or horiz_vertic == 2:
-        break
-    else:
-        print('Неверные данные, повторите ввод')
 
-if horiz_vertic == 1:
-    print('Введите координаты левой части корабля')
-    while True:
-        ship_row = int(input('Строка: '))
-        ship_col = int(input('Столбик: '))
-        if 0 < ship_row <= size_field and 0 < ship_col <= size_field:
-            if ship_col == size_field:
-                print('Справа не хватает места для корабля, повторите ввод')
-            else:
-                field_user[ship_row - 1][ship_col - 1] = "*"
-                field_user[ship_row - 1][ship_col] = "*"
-                break
-        else:
-            print('Неверные данные, повторите ввод')
-else:
-    print('Введите координаты верхней части корабля')
-    while True:
-        ship_row = int(input('Строка: '))
-        ship_col = int(input('Столбик: '))
-        if 0 < ship_row <= size_field and 0 < ship_col <= size_field:
-            if ship_row == size_field:
-                print('Снизу не хватает места для корабля, повторите ввод')
-            else:
-                field_user[ship_row - 1][ship_col - 1] = "*"
-                field_user[ship_row][ship_col - 1] = "*"
-                break
-        else:
-            print('Неверные данные, повторите ввод')
-print_field_square(field_user)  # здесь будет двухпалубный кораблик игрока
+for i in range(count_ship_4):
+    print(f'Расположите четырехпалубный корабль {i + 1}/{count_ship_4}')
+    horiz_vertic = choose_horiz_vertic()
+    put_ship_user(check_space_around, field_user, 4, horiz_vertic)
+    print_field_square(field_user)
 
-print('Введите координаты однопалубного корабля, он не должен '
-      'соприкасаться с двухпалубным')
-while True:
-    ship_row = int(input('Строка: '))
-    ship_col = int(input('Столбик: '))
-    if 0 < ship_row <= size_field and 0 < ship_col <= size_field:
-        if check_space_around(ship_row - 1, ship_col - 1, field_user):
-            field_user[ship_row - 1][ship_col - 1] = '*'
-            break
-        else:
-            print('Сюда нельзя ставить корабль, повторите ввод')
-    else:
-        print('Неверные данные, повторите ввод')
+for i in range(count_ship_3):
+    print(f'Расположите трехпалубный корабль {i + 1}/{count_ship_3}')
+    horiz_vertic = choose_horiz_vertic()
+    put_ship_user(check_space_around, field_user, 3, horiz_vertic)
+    print_field_square(field_user)
+
+for i in range(count_ship_2):
+    print(f'Расположите двухпалубный корабль {i + 1}/{count_ship_2}')
+    horiz_vertic = choose_horiz_vertic()
+    put_ship_user(check_space_around, field_user, 2, horiz_vertic)
+    print_field_square(field_user)
+
+for i in range(count_ship_1):
+    print(f'Расположите однопалубный корабль {i + 1}/{count_ship_1}')
+    put_ship_user_1_deck(check_space_around, field_user)
+    print_field_square(field_user)
 
 print('Ваши корабли >')
 print_field_square(field_user)
 
 # комп прячет кораблики
 field_comp = create_field(size_field)
-put_ship_random(check_space_around, field_comp, 4)
-put_ship_random(check_space_around, field_comp, 3)
-put_ship_random(check_space_around, field_comp, 2)
-put_ship_random(check_space_around, field_comp, 2)
-put_decks_random_1decks(check_space_around, field_comp)
-put_decks_random_1decks(check_space_around, field_comp)
-put_decks_random_1decks(check_space_around, field_comp)
+for _ in range(count_ship_4):
+    put_ship_random(check_space_around, field_comp, 4)
+for _ in range(count_ship_3):
+    put_ship_random(check_space_around, field_comp, 3)
+for _ in range(count_ship_2):
+    put_ship_random(check_space_around, field_comp, 2)
+for _ in range(count_ship_1):
+    put_decks_random_1decks(check_space_around, field_comp)
 
-print('Корабли противника >')
-print_field_square(field_comp)  # не подсматривайте за кораблями противника!
+# print('Корабли противника >')
+# print_field_square(field_comp)  # не подсматривайте за кораблями противника!
 
 # кто ходит первым
 time.sleep(2)
@@ -264,9 +301,8 @@ else:
 # подсчитываем сбитые корабли
 user_win = 0
 comp_win = 0
-
-# !!!!!!!!!!!!!!!!!!!
-max_ships = 14  # количество ячеек с кораблями
+# количество ячеек с кораблями
+max_ships = 4 * count_ship_4 + 3 * count_ship_3 + 2 * count_ship_2 + 1 * count_ship_1
 while True:
 
     # Ход игрока
