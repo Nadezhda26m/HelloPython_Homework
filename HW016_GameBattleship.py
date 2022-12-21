@@ -22,7 +22,7 @@
 # TODO
 # расширить поле +
 # добавить 1 корабль ++
-# ранил / потопил
+# ранил / потопил +
 # проверка ввода вертикали / горизонтали
 # комп ищет раненый корабль
 # добавить словарь фраз
@@ -142,6 +142,35 @@ def put_decks_random_1decks(check_space, field):
             field_comp[ship_row][ship_col] = '*'
             break
 
+# Ищем раненые корабли
+def find_damaged_ship(row, col, ships, target, check=[]):
+    size = len(ships)
+    check.append((row, col))
+    if row + 1 < size and ships[row + 1][col] != 0:
+        if target[row + 1][col] == '#':
+            if not (row + 1, col) in check:
+                find_damaged_ship(row + 1, col, ships, target, check)
+        else:
+            return True
+    if row - 1 > 0 and ships[row - 1][col] != 0:
+        if target[row - 1][col] == '#':
+            if not (row - 1, col) in check:
+                find_damaged_ship(row - 1, col, ships, target, check)
+        else:
+            return True
+    if col + 1 < size and ships[row][col + 1] != 0:
+        if target[row][col + 1] == '#':
+            if not (row, col + 1) in check:
+                find_damaged_ship(row, col + 1, ships, target, check)
+        else:
+            return True
+    if col - 1 > 0 and ships[row][col - 1] != 0:
+        if target[row][col - 1] == '#':
+            if not (row, col - 1) in check:
+                find_damaged_ship(row, col - 1, ships, target, check)
+        else:
+            return True
+
 
 size_field = 7  # Задаем размер игрового поля, квадратного
 print('Добро пожаловать в игру Морской бой!\n'
@@ -237,7 +266,7 @@ user_win = 0
 comp_win = 0
 
 # !!!!!!!!!!!!!!!!!!!
-max_ships = 3  # 3 ячейки с кораблями
+max_ships = 14  # количество ячеек с кораблями
 while True:
 
     # Ход игрока
@@ -253,7 +282,10 @@ while True:
             step_now = 2
         else:
             user_goal[step_row - 1][step_col - 1] = '#'
-            print('Попал!')
+            if find_damaged_ship(step_row - 1, step_col - 1, field_comp, user_goal):
+                print('Ранил')
+            else:
+                print('Потопил!')
             user_win += 1
         print_fields_nearby(user_goal, field_user)
 
@@ -274,7 +306,7 @@ while True:
                 break
             elif field_user[step_row][step_col] == '*':
                 field_user[step_row][step_col] = '#'
-                print(f'Строка: {step_row + 1}\nСтолбецик: {step_col + 1}')
+                print(f'Строка: {step_row + 1}\nСтолбик: {step_col + 1}')
                 time.sleep(1)
                 print('Противник попал в ваш корабль!')
                 comp_win += 1
