@@ -34,17 +34,15 @@ import time
 # вывести игровое поле с нумерацией
 def print_field_square(field):
     size_field = len(field)
-    for i in range(-1, size_field):
-        if i == -1:
-            print(' ', end=' ')
-            for p in range(1, size_field + 1):
-                print(p, end=' ')
-            print()
-        else:
-            print(f'{i + 1}', end=' ')
-            for k in range(0, size_field):
-                print(field[i][k] if field[i][k] != 0 else '.', end=' ')
-            print()
+    print(' ', end=' ')
+    for p in range(1, size_field + 1):
+        print(p, end=' ')
+    print()
+    for i in range(size_field):
+        print(f'{i + 1}', end=' ')
+        for k in range(size_field):
+            print(field[i][k] if field[i][k] != 0 else '.', end=' ')
+        print()
 
 # проверить корректность ввода пользователя при нацеливании
 def check_input_user(field):
@@ -93,25 +91,23 @@ def check_space_around(row, col, field):
 # вывести рядом два поля
 def print_fields_nearby(field_left, field_right):
     size = len(field_left)
-    for i in range(-1, size):
-        if i == -1:
-            print(' ', end=' ')
-            for p in range(1, size + 1):
-                print(p, end=' ')
-            print('         ', end=' ')
-            for p in range(1, size + 1):
-                print(p, end=' ')
-            print()
-        else:
-            print(f'{i + 1}', end=' ')
-            for k in range(0, size):
-                print(field_left[i][k] if field_left[i][k] != 0 else '.', end=' ')
-            print(f'        {i + 1}', end=' ')
-            for k in range(0, size):
-                print(field_right[i][k] if field_right[i][k] != 0 else '.', end=' ')
-            print()
+    print(' ', end=' ')
+    for p in range(1, size + 1):
+        print(p, end=' ')
+    print('         ', end=' ')
+    for p in range(1, size + 1):
+        print(p, end=' ')
+    print()
+    for i in range(size):
+        print(f'{i + 1}', end=' ')
+        for k in range(size):
+            print(field_left[i][k] if field_left[i][k] != 0 else '.', end=' ')
+        print(f'        {i + 1}', end=' ')
+        for k in range(size):
+            print(field_right[i][k] if field_right[i][k] != 0 else '.', end=' ')
+        print()
 
-# разместить рандомно корабль с указанием количества палуб
+# разместить рандомно корабль с указанием количества палуб (до 4 вкл)
 def put_ship_random(check_space, field, count_decks):
     size = len(field)
     horiz_vertic = randint(1, 2)
@@ -183,6 +179,7 @@ def choose_horiz_vertic():
         else:
             print('Неверные данные, повторите ввод')
 
+# разместить многопалубный корабль (до 4 вкл)
 def put_ship_user(check_space, field, count_decks, horiz_vertic):
     size = len(field)
     print('Введите координаты левой части корабля при горизонтальном расположении\n'
@@ -218,6 +215,7 @@ def put_ship_user(check_space, field, count_decks, horiz_vertic):
         else:
             print('Неверные данные, повторите ввод')
 
+# разместить однопалубный корабль
 def put_ship_user_1_deck(check_space, field):
     size = len(field)
     while True:
@@ -247,25 +245,25 @@ field_user = create_field(size_field)
 print_field_square(field_user)
 
 for i in range(count_ship_4):
-    print(f'Расположите четырехпалубный корабль {i + 1}/{count_ship_4}')
+    print(f'Разместите четырехпалубный корабль {i + 1}/{count_ship_4}')
     horiz_vertic = choose_horiz_vertic()
     put_ship_user(check_space_around, field_user, 4, horiz_vertic)
     print_field_square(field_user)
 
 for i in range(count_ship_3):
-    print(f'Расположите трехпалубный корабль {i + 1}/{count_ship_3}')
+    print(f'Разместите трехпалубный корабль {i + 1}/{count_ship_3}')
     horiz_vertic = choose_horiz_vertic()
     put_ship_user(check_space_around, field_user, 3, horiz_vertic)
     print_field_square(field_user)
 
 for i in range(count_ship_2):
-    print(f'Расположите двухпалубный корабль {i + 1}/{count_ship_2}')
+    print(f'Разместите двухпалубный корабль {i + 1}/{count_ship_2}')
     horiz_vertic = choose_horiz_vertic()
     put_ship_user(check_space_around, field_user, 2, horiz_vertic)
     print_field_square(field_user)
 
 for i in range(count_ship_1):
-    print(f'Расположите однопалубный корабль {i + 1}/{count_ship_1}')
+    print(f'Разместите однопалубный корабль {i + 1}/{count_ship_1}')
     put_ship_user_1_deck(check_space_around, field_user)
     print_field_square(field_user)
 
@@ -323,7 +321,7 @@ while True:
             else:
                 print('Потопил!')
             user_win += 1
-        print_fields_nearby(user_goal, field_user)
+        # print_fields_nearby(user_goal, field_user)
 
     # Ход компьютера
     else:
@@ -347,7 +345,8 @@ while True:
                 print('Противник попал в ваш корабль!')
                 comp_win += 1
                 break
-        print_fields_nearby(user_goal, field_user)
+
+    print_fields_nearby(user_goal, field_user)
 
     if user_win == max_ships:
         print('\nВы выиграли!!!')
